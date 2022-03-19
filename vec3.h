@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <iostream>
+#include "rtweekend.h"
 
 using std::sqrt;
 
@@ -44,11 +45,17 @@ class vec3 {
         double length_squared() const {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
-        void write_color(std::ostream &out) {
+        void write_color(std::ostream &out, int samples_per_pixel) {
+            // Divide the color total by the number of samples. 多次采样之后求平均值
+            auto scale = 1.0 / samples_per_pixel;
+            auto r = scale * e[0];
+            auto g = scale * e[1];
+            auto b = scale * e[2];
+
             // Write the translated [0,255] value of each color component.
-            out << static_cast<int>(255.999 * e[0]) << ' '
-                << static_cast<int>(255.999 * e[1]) << ' '
-                << static_cast<int>(255.999 * e[2]) << '\n';
+            out << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << ' '
+                << static_cast<int>(256 * clamp(g, 0.0, 0.999)) << ' '
+                << static_cast<int>(256 * clamp(b, 0.0, 0.999)) << '\n';
         }
     public:
         double e[3];

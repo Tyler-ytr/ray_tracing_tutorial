@@ -8,6 +8,11 @@ struct hit_record {
     vec3 p;
     vec3 normal;
     double t;
+    bool front_face; // true if ray is from inside the object 
+    inline void set_face_normal(const ray&r,const vec3& outward_normal) {//outward_normal表示向外的法相；
+        front_face = dot(r.direction(), outward_normal) < 0;
+        normal = front_face ? outward_normal : -outward_normal;
+    }
 };
 
 class hittable {

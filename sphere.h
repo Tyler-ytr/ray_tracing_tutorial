@@ -27,7 +27,8 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
         if (temp < t_max && temp > t_min) {
             rec.t = temp;
             rec.p = r.at(rec.t);
-            rec.normal = (rec.p - center) / radius;
+            vec3 outward_normal = (rec.p - center) / radius;//求向外的法向量
+            rec.set_face_normal(r, outward_normal);//设置法向量
             return true;
         }
 
@@ -35,7 +36,8 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
         if (temp < t_max && temp > t_min) {
             rec.t = temp;
             rec.p = r.at(rec.t);
-            rec.normal = (rec.p - center) / radius;
+            vec3 outward_normal = (rec.p - center) / radius;//求向外的法向量
+            rec.set_face_normal(r, outward_normal);//设置法向量
             return true;
         }
 
