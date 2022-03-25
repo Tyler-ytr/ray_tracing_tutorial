@@ -23,7 +23,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
 
     if(discriminant>0){
         auto root=sqrt(discriminant);
-        auto temp = (-half_b - root)/a;//小的根 ok就用小的
+        auto temp = (-half_b - root)/a;//小的根 ok就用小的 直线上面的点p(temp)与球体相交
         if (temp < t_max && temp > t_min) {
             rec.t = temp;
             rec.p = r.at(rec.t);
