@@ -1,12 +1,13 @@
 //hittable.h
 #ifndef HITTABLE_H
 #define HITTABLE_H
-
-#include "ray.h"
+#include "material.h"
+#include "rtweekend.h"
 
 struct hit_record {
     vec3 p;
     vec3 normal;
+    shared_ptr<material> mat_ptr;
     double t;
     bool front_face; // true if ray is from inside the object 
     inline void set_face_normal(const ray&r,const vec3& outward_normal) {//outward_normal表示向外的法相；

@@ -1,11 +1,10 @@
 #include "rtweekend.h"
-#include <iostream>
 
 
 #include "hittable_list.h"
 #include "sphere.h"
 #include "camera.h"
-#include "vec3.h"
+
 #include <iostream>
 
 
@@ -16,8 +15,9 @@ vec3 ray_color(const ray& r, const hittable& world,int depth) {//返回的值是
         return vec3(0,0,0);//返回黑色
     }
     if (world.hit(r, 0.001, infinity, rec)) {//本来是0，防止自相交
-        
-        vec3 target = rec.p + rec.normal + vec3::random_in_unit_sphere();//单位球的球心加上一个随机值
+        //vec3 target = rec.p + random_in_hemisphere(rec.normal);//从入射点开始选取一个随机的方向, 然后再判断是否在法向量所在的那个半球。
+        vec3 target = rec.p + rec.normal + random_unit_vector();//单位球的球面取点然后单位化
+        //vec3 target = rec.p + rec.normal + random_in_unit_sphere();//单位球的球心加上一个随机值
         return 0.5*ray_color(ray(rec.p, target-rec.p), world, depth-1);
         
         // return 0.5 * (rec.normal + vec3(1,1,1));
