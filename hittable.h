@@ -1,9 +1,9 @@
 //hittable.h
 #ifndef HITTABLE_H
 #define HITTABLE_H
-#include "material.h"
-#include "rtweekend.h"
 
+#include "rtweekend.h"
+class material;
 struct hit_record {
     vec3 p;
     vec3 normal;

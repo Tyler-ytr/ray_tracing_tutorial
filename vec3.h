@@ -145,5 +145,8 @@ vec3 random_in_hemisphere(const vec3& normal) {
                 return -in_unit_sphere;
         }
 
+vec3 reflect(const vec3& v, const vec3& n) {
+    return v - 2*dot(v,n)*n;//反射，n是平面的法向量，v是入射的光线，返回反射的光线
+}
 
 #endif
