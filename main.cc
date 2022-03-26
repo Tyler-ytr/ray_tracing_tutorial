@@ -1,4 +1,5 @@
 //UTF-8
+//begin
 #include "rtweekend.h"
 
 
