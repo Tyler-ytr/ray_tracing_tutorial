@@ -148,5 +148,19 @@ vec3 random_in_hemisphere(const vec3& normal) {
 vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2*dot(v,n)*n;//反射，n是平面的法向量，v是入射的光线，返回反射的光线
 }
+//折射
+vec3 refract(const vec3& uv,const vec3&n,double etai_over_etat){//uv是单位化的入射光线，n是平面的法向量，etai_over_etat是折射率的比值(上面的介质比下面的介质)
+    auto cos_theta=dot(-uv,n);
+    vec3 r_out_parallel =  etai_over_etat * (uv + cos_theta*n);//平行的向量
+    vec3 r_out_perp = -sqrt(1.0 - r_out_parallel.length_squared()) * n;//垂直的向量
+    return r_out_parallel + r_out_perp;
+}
 
+vec3 random_in_unit_disk() {
+    while (true) {
+        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+        if (p.length_squared() >= 1) continue;
+        return p;
+    }
+}//圆盘的随机点
 #endif
