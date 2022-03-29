@@ -35,7 +35,7 @@ bool bvh_node::bounding_box(double time0, double time1, aabb& output_box) const 
     output_box = box;
     return true;
 }
-bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {//如果box没有被命中就返回；否则看自己的左右节点的命中情况
+bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {//如果box没有被命中就返回；否则看自己的左右节点的命中情况;因此如果光线没有命中包围盒，就不会向下寻找物体；（因为物体是存在BVH节点中的
     if (!box.hit(r, t_min, t_max))
         return false;
 

@@ -2,7 +2,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include "hittable.h"
-
+#include "texture.h"
 class material {
     public:
         virtual bool scatter(
@@ -12,17 +12,18 @@ class material {
 
 class lambertian:public material{
     public:
-        lambertian(const vec3& a):albedo(a){};
+        lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
+        lambertian(shared_ptr<texture> a) : albedo(a) {}
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
         ) const {
             vec3 scatter_direction = rec.normal + random_unit_vector();//散射方向
             scattered = ray(rec.p, scatter_direction,r_in.time());//散射光线
-            attenuation = albedo;//衰减，反射率
+            attenuation = albedo->value(rec.u, rec.v, rec.p);//衰减，反射率
             return true;
         }
     public:
-        vec3 albedo;
+        shared_ptr<texture> albedo;
 };
 class metal : public material {
     public:

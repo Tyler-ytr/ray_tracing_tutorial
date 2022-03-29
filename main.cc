@@ -2,7 +2,7 @@
 //begin
 #include "rtweekend.h"
 
-
+#include "bvh.h"
 #include "hittable_list.h"
 #include "sphere.h"
 #include "camera.h"
@@ -35,8 +35,9 @@ vec3 ray_color(const ray& r, const hittable& world,int depth) {//返回的值是
 hittable_list random_scene() {
     hittable_list world;
 
-    auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-    world.add(make_shared<sphere>(point3(0,-1000,0), 1000, ground_material));
+    auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+    world.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(checker)));
+
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
@@ -77,7 +78,8 @@ hittable_list random_scene() {
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
-    return world;
+    return static_cast<hittable_list>(make_shared<bvh_node>(world,0,1));
+    //return world;
 }
 
 //main.cc

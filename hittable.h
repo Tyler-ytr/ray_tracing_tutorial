@@ -10,6 +10,8 @@ struct hit_record {
     vec3 normal;
     shared_ptr<material> mat_ptr;
     double t;
+    double u;//表示纹理坐标
+    double v;
     bool front_face; // true if ray is from inside the object 
     inline void set_face_normal(const ray&r,const vec3& outward_normal) {//outward_normal表示向外的法相；
         front_face = dot(r.direction(), outward_normal) < 0;
