@@ -9,6 +9,7 @@
 #include "camera.h"
 #include "moving_sphere.h"
 #include <iostream>
+#include "box.h"
 
 
 //目前是纯黑背景，所有光线来自于光源材质
@@ -137,7 +138,18 @@ hittable_list cornell_box() {
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
     objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+    // objects.add(make_shared<box>(point3(130, 0, 65), point3(295, 165, 230), white));
+    // objects.add(make_shared<box>(point3(265, 0, 295), point3(430, 330, 460), white));
 
+    shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
+    box1 = make_shared<rotate_y>(box1, 15);
+    box1 = make_shared<translate>(box1, vec3(265,0,295));
+    objects.add(box1);
+
+    shared_ptr<hittable> box2 = make_shared<box>(point3(0,0,0), point3(165,165,165), white);
+    box2 = make_shared<rotate_y>(box2, -18);
+    box2 = make_shared<translate>(box2, vec3(130,0,65));
+    objects.add(box2);
     return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
 }
 //main.cc
