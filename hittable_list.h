@@ -25,7 +25,7 @@ class hittable_list: public hittable {
         std::vector<shared_ptr<hittable>> objects;
 };
 
-bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
+bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {//射线r进入，对于每一个物体进行hit，结果记录在rec里面
     hit_record temp_rec;
     bool hit_anything = false;
     auto closest_so_far = t_max;
@@ -33,7 +33,7 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
     for (const auto& object : objects) {
         if (object->hit(r, t_min, closest_so_far, temp_rec)) {
             hit_anything = true;
-            closest_so_far = temp_rec.t;
+            closest_so_far = temp_rec.t;//射线击中物体的最近距离
             rec = temp_rec;
         }
     }

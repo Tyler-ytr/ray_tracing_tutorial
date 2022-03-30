@@ -5,11 +5,13 @@
 #include "bvh.h"
 #include "hittable_list.h"
 #include "sphere.h"
+#include "aarect.h"
 #include "camera.h"
 #include "moving_sphere.h"
 #include <iostream>
 
 
+//目前是纯黑背景，所有光线来自于光源材质
 color ray_color(const ray& r, const color& background, const hittable& world, int depth) {
     hit_record rec;
 
@@ -17,7 +19,7 @@ color ray_color(const ray& r, const color& background, const hittable& world, in
     if (depth <= 0)
         return color(0,0,0);
 
-    // If the ray hits nothing, return the background color.
+    // 如果光线没有击中任何东西，返回背景色
     if (!world.hit(r, 0.001, infinity, rec))
         return background;
 
@@ -109,6 +111,18 @@ hittable_list earth() {
 
     return hittable_list(globe);
 }
+hittable_list simple_light() {
+    hittable_list objects;
+
+    auto pertext = make_shared<noise_texture>(4);
+    objects.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(pertext)));//地面
+    objects.add(make_shared<sphere>(point3(0,2,0), 2, make_shared<lambertian>(pertext)));//中间的球
+
+    auto difflight = make_shared<diffuse_light>(color(4,4,4));//光线的材质
+    objects.add(make_shared<xy_rect>(3, 5, 1, 3, -2, difflight));//加入光源
+    objects.add(make_shared<sphere>(point3(0,8,0), 2, difflight));//球光源
+    return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
+}
 //main.cc
 int main() {
 
@@ -127,10 +141,12 @@ int main() {
     point3 lookat;
     auto vfov = 40.0;
     auto aperture = 0.0;
+    color background(0,0,0);
 
     switch (0) {
         case 1:
             world = random_scene();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13,2,3);
             lookat = point3(0,0,0);
             vfov = 20.0;
@@ -139,21 +155,32 @@ int main() {
 
         case 2:
             world = two_spheres();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13,2,3);
             lookat = point3(0,0,0);
             vfov = 20.0;
             break;
         case 3:
             world = two_perlin_spheres();
+            background = color(0.70, 0.80, 1.00);
+            lookfrom = point3(13,2,3);
+            lookat = point3(0,0,0);
+            vfov = 20.0;
+            break;
+        case 4:
+            world = earth();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13,2,3);
             lookat = point3(0,0,0);
             vfov = 20.0;
             break;
         default:
-        case 4:
-            world = earth();
-            lookfrom = point3(13,2,3);
-            lookat = point3(0,0,0);
+        case 5:
+            world = simple_light();
+            samples_per_pixel = 400;
+            background = color(0,0,0);
+            lookfrom = point3(26,3,6);
+            lookat = point3(0,2,0);
             vfov = 20.0;
             break;
     }
@@ -178,7 +205,7 @@ int main() {
                 auto u = (i + random_double()) / image_width;
                 auto v = (j + random_double()) / image_height;
                 ray r = cam.get_ray(u, v);
-                color += ray_color(r, world, max_depth);
+                color += ray_color(r, background, world, max_depth);
             }
             color.write_color(std::cout, samples_per_pixel);
         }
