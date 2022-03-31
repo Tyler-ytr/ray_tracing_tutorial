@@ -64,6 +64,11 @@ class vec3 {
         inline static vec3 random(double min, double max) {
             return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
         }
+        bool near_zero() const {
+        // 如果向量在各个维度都接近零返回true.
+        const auto s = 1e-8;
+        return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+        }
 
 
     public:

@@ -6,8 +6,17 @@
 class material {
     public:
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
-        ) const = 0;
+            const ray& r_in, const hit_record& rec, color& albedo, ray& scattered, double& pdf
+        ) const {
+            return false;
+        }
+
+        virtual double scattering_pdf(
+            const ray& r_in, const hit_record& rec, const ray& scattered
+        ) const {
+            return 0;
+        }
+
         virtual color emitted(double u, double v, const point3& p) const {
             return color(0,0,0);//默认返回黑色
         }
@@ -18,12 +27,23 @@ class lambertian:public material{
         lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
         lambertian(shared_ptr<texture> a) : albedo(a) {}
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
-        ) const {
-            vec3 scatter_direction = rec.normal + random_unit_vector();//散射方向
-            scattered = ray(rec.p, scatter_direction,r_in.time());//散射光线
-            attenuation = albedo->value(rec.u, rec.v, rec.p);//衰减，反射率
+            const ray& r_in, const hit_record& rec, color& alb, ray& scattered, double& pdf
+        ) const override {
+            auto scatter_direction = rec.normal + random_unit_vector();
+
+            // Catch degenerate scatter direction
+            if (scatter_direction.near_zero())
+                scatter_direction = rec.normal;
+            scattered = ray(rec.p, unit_vector(scatter_direction), r_in.time());
+            alb = albedo->value(rec.u, rec.v, rec.p);
+            pdf = dot(rec.normal, scattered.direction()) / pi;
             return true;
+        }
+        double scattering_pdf(
+            const ray& r_in, const hit_record& rec, const ray& scattered
+        ) const {
+            auto cosine = dot(rec.normal, unit_vector(scattered.direction()));
+            return cosine < 0 ? 0 : cosine/pi;
         }
 
     public:
@@ -91,7 +111,7 @@ class diffuse_light:public material{
         diffuse_light(color c) : emit(make_shared<solid_color>(c)) {}
 
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered,double& pdf
         ) const override {
             return false;
         }
@@ -104,23 +124,23 @@ class diffuse_light:public material{
         shared_ptr<texture> emit;
 };
 
-//各项同性体积体材质
-class isotropic : public material {
-    public:
-        isotropic(color c) : albedo(make_shared<solid_color>(c)) {}
-        isotropic(shared_ptr<texture> a) : albedo(a) {}
+// //各项同性体积体材质
+// class isotropic : public material {
+//     public:
+//         isotropic(color c) : albedo(make_shared<solid_color>(c)) {}
+//         isotropic(shared_ptr<texture> a) : albedo(a) {}
 
-        virtual bool scatter(
-            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-        ) const override {
-            scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
-            attenuation = albedo->value(rec.u, rec.v, rec.p);
-            return true;
-        }
+//         virtual bool scatter(
+//             const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+//         ) const override {
+//             scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
+//             attenuation = albedo->value(rec.u, rec.v, rec.p);
+//             return true;
+//         }
 
-    public:
-        shared_ptr<texture> albedo;
-};
+//     public:
+//         shared_ptr<texture> albedo;
+// };
 
 
 #endif
