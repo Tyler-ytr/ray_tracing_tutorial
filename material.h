@@ -3,6 +3,7 @@
 #define MATERIAL_H
 #include "hittable.h"
 #include "texture.h"
+#include "onb.h"
 class material {
     public:
         virtual bool scatter(
@@ -21,7 +22,11 @@ class material {
             return color(0,0,0);//默认返回黑色
         }
 };
+inline bool double_near_zero(double test){
+    double dis=1e-6;
+    return abs(test)<dis;//如果等于0，返回true；否则false
 
+}
 class lambertian:public material{
     public:
         lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
@@ -29,16 +34,17 @@ class lambertian:public material{
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, color& alb, ray& scattered, double& pdf
         ) const override {
-            auto scatter_direction = rec.normal + random_unit_vector();
-
-            // Catch degenerate scatter direction
-            if (scatter_direction.near_zero())
-                scatter_direction = rec.normal;
-            scattered = ray(rec.p, unit_vector(scatter_direction), r_in.time());
+            onb uvw;
+            uvw.build_from_w(rec.normal);
+            do{
+            vec3 direction = uvw.local(random_cosine_direction());//random_cosine_direction可以返回一个相对于z轴的随机的向量，这里是要把xyz相当于转换到当前的坐标（xu+yv+zw）
+            scattered = ray(rec.p, unit_vector(direction), r_in.time());
+            pdf = dot(uvw.w(), scattered.direction()) / pi;}
+            while(double_near_zero(pdf));//防止除0错
             alb = albedo->value(rec.u, rec.v, rec.p);
-            pdf = dot(rec.normal, scattered.direction()) / pi;
             return true;
         }
+        
         double scattering_pdf(
             const ray& r_in, const hit_record& rec, const ray& scattered
         ) const {
