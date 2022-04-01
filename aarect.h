@@ -62,6 +62,27 @@ class xz_rect : public hittable {
             return true;
         }
 
+        virtual double pdf_value(const point3& origin, const vec3& v) const override {
+            hit_record rec;
+            if (!this->hit(ray(origin, v), 0.001, infinity, rec))
+                return 0;
+
+            auto area = (x1-x0)*(z1-z0);//相当于公式里面的dA
+            auto distance_squared = rec.t * rec.t * v.length_squared();//相当于分母的dis
+            auto cosine = fabs(dot(v, rec.normal) / v.length());//
+
+            return distance_squared / (cosine * area);
+        }
+        /*******************************************************************
+         * @brief : 返回一个随机的to_light向量，也就是光源的一个随机点指向p点，其实也就是光线的一个采样
+         * @param :point3&undefined origin 
+         * @return : 一个随机的vec3
+        *******************************************************************/        
+        virtual vec3 random(const point3& origin) const override {
+            auto random_point = point3(random_double(x0,x1), k, random_double(z0,z1));//相当于on_light
+            return random_point - origin;
+        }
+
     public:
         shared_ptr<material> mp;
         double x0, x1, z0, z1, k;

@@ -10,7 +10,8 @@ class sphere: public hittable{
         sphere(vec3 cen,double r,shared_ptr<material> m):center(cen),radius(r),mat_ptr(m) {};;
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const;
         virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
-
+        virtual double pdf_value(const point3& o, const vec3& v) const;
+        virtual vec3 random(const point3& o) const;
     public:
         vec3 center;
         double radius;
@@ -70,5 +71,24 @@ bool sphere::bounding_box(double time0, double time1, aabb& output_box) const {
         center - vec3(radius, radius, radius),
         center + vec3(radius, radius, radius));
     return true;
+}
+
+double sphere::pdf_value(const point3& o, const vec3& v) const {
+    hit_record rec;
+    if (!this->hit(ray(o, v), 0.001, infinity, rec))
+        return 0;
+
+    auto cos_theta_max = sqrt(1 - radius*radius/(center-o).length_squared());
+    auto solid_angle = 2*pi*(1-cos_theta_max);
+
+    return  1 / solid_angle;
+}
+
+vec3 sphere::random(const point3& o) const {
+    vec3 direction = center - o;
+    auto distance_squared = direction.length_squared();
+    onb uvw;
+    uvw.build_from_w(direction);
+    return uvw.local(random_to_sphere(radius, distance_squared));
 }
 #endif

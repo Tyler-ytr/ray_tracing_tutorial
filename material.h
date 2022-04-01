@@ -1,13 +1,35 @@
+/*
+ * @Author: your name
+ * @Date: 2022-04-01 17:04:28
+ * @LastEditTime: 2022-04-01 18:01:11
+ * @LastEditors: Please set LastEditors
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /raytracing/ray_tracing_tutorial/material.h
+ */
 //material.h
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include "hittable.h"
 #include "texture.h"
 #include "onb.h"
+#include "pdf.h"
+struct scatter_record {
+    ray specular_ray;
+    bool is_specular;
+    color attenuation;
+    shared_ptr<pdf> pdf_ptr;
+};
+
 class material {
     public:
+        virtual color emitted(const ray& r_in, const hit_record& rec, double u, double v,
+            const point3& p) const {
+
+                return color(0,0,0);
+        }
+
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, color& albedo, ray& scattered, double& pdf
+            const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const {
             return false;
         }
@@ -16,10 +38,6 @@ class material {
             const ray& r_in, const hit_record& rec, const ray& scattered
         ) const {
             return 0;
-        }
-
-        virtual color emitted(double u, double v, const point3& p) const {
-            return color(0,0,0);//默认返回黑色
         }
 };
 inline bool double_near_zero(double test){
@@ -32,16 +50,11 @@ class lambertian:public material{
         lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
         lambertian(shared_ptr<texture> a) : albedo(a) {}
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, color& alb, ray& scattered, double& pdf
+            const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const override {
-            onb uvw;
-            uvw.build_from_w(rec.normal);
-            do{
-            vec3 direction = uvw.local(random_cosine_direction());//random_cosine_direction可以返回一个相对于z轴的随机的向量，这里是要把xyz相当于转换到当前的坐标（xu+yv+zw）
-            scattered = ray(rec.p, unit_vector(direction), r_in.time());
-            pdf = dot(uvw.w(), scattered.direction()) / pi;}
-            while(double_near_zero(pdf));//防止除0错
-            alb = albedo->value(rec.u, rec.v, rec.p);
+            srec.is_specular = false;
+            srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
+            srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
             return true;
         }
         
@@ -60,12 +73,14 @@ class metal : public material {
         metal(const vec3& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
-        ) const {
+            const ray& r_in, const hit_record& rec, scatter_record& srec
+        ) const override {
             vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
-            scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere(),r_in.time());
-            attenuation = albedo;
-            return (dot(scattered.direction(), rec.normal) > 0);//dot<0我们认为吸收
+            srec.specular_ray = ray(rec.p, reflected+fuzz*random_in_unit_sphere());
+            srec.attenuation = albedo;
+            srec.is_specular = true;
+            srec.pdf_ptr = 0;
+            return true;
         }
 
     public:
@@ -84,9 +99,11 @@ class dielectric : public material {
         }
 
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+            const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const {
-            attenuation = vec3(1.0, 1.0, 1.0);
+            srec.is_specular = true;
+            srec.pdf_ptr = nullptr;
+            srec.attenuation = color(1.0, 1.0, 1.0);
             double etai_over_etat = (rec.front_face) ? (1.0 / ref_idx) : (ref_idx);
 
             vec3 unit_direction = unit_vector(r_in.direction());
@@ -94,18 +111,18 @@ class dielectric : public material {
             double sin_theta = sqrt(1.0 - cos_theta*cos_theta);
             if (etai_over_etat * sin_theta > 1.0 ) {
                 vec3 reflected = reflect(unit_direction, rec.normal);
-                scattered = ray(rec.p, reflected,r_in.time());
+                srec.specular_ray = ray(rec.p, reflected,r_in.time());
                 return true;
             }
             double reflect_prob = schlick(cos_theta, etai_over_etat);
             if (random_double() < reflect_prob)
             {
                 vec3 reflected = reflect(unit_direction, rec.normal);
-                scattered = ray(rec.p, reflected,r_in.time());
+                srec.specular_ray = ray(rec.p, reflected,r_in.time());
                 return true;
             }
             vec3 refracted = refract(unit_direction, rec.normal, etai_over_etat);
-            scattered = ray(rec.p, refracted,r_in.time());
+            srec.specular_ray = ray(rec.p, refracted,r_in.time());
             return true;
         }
     public:
@@ -116,14 +133,14 @@ class diffuse_light:public material{
         diffuse_light(shared_ptr<texture> a) : emit(a) {}
         diffuse_light(color c) : emit(make_shared<solid_color>(c)) {}
 
-        virtual bool scatter(
-            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered,double& pdf
-        ) const override {
-            return false;
-        }
 
-        virtual color emitted(double u, double v, const point3& p) const override {
-            return emit->value(u, v, p);
+        virtual color emitted(const ray& r_in, const hit_record& rec, double u, double v,
+            const point3& p) const override {
+
+            if (rec.front_face)
+                return emit->value(u, v, p);
+            else
+                return color(0,0,0);
         }
 
     public:

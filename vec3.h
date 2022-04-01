@@ -48,10 +48,18 @@ class vec3 {
         void write_color(std::ostream &out, int samples_per_pixel) {
             // Divide the color total by the number of samples. 多次采样之后求平均值
             auto scale = 1.0 / samples_per_pixel;
+            auto r =  e[0];
+            auto g = e[1];
+            auto b =  e[2];
+            // Replace NaN components with zero. See explanation in Ray Tracing: The Rest of Your Life.
+            if (r != r) r = 0.0;
+            if (g != g) g = 0.0;
+            if (b != b) b = 0.0;
+            
             //伽马矫正，之前没有sqrt
-            auto r = sqrt(scale * e[0]);
-            auto g = sqrt(scale * e[1]);
-            auto b = sqrt(scale * e[2]);
+            r = sqrt(scale * r);
+            g = sqrt(scale * g);
+            b = sqrt(scale * b);
 
             // Write the translated [0,255] value of each color component.
             out << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << ' '
@@ -169,15 +177,15 @@ vec3 random_in_unit_disk() {
     }
 }//圆盘的随机点
 
-inline vec3 random_cosine_direction() {
-    auto r1 = random_double();
-    auto r2 = random_double();
-    auto z = sqrt(1-r2);
+// inline vec3 random_cosine_direction() {
+//     auto r1 = random_double();
+//     auto r2 = random_double();
+//     auto z = sqrt(1-r2);
 
-    auto phi = 2*pi*r1;
-    auto x = cos(phi)*sqrt(r2);
-    auto y = sin(phi)*sqrt(r2);
+//     auto phi = 2*pi*r1;
+//     auto x = cos(phi)*sqrt(r2);
+//     auto y = sin(phi)*sqrt(r2);
 
-    return vec3(x, y, z);
-}
+//     return vec3(x, y, z);
+// }
 #endif
