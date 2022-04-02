@@ -5,6 +5,7 @@
 #include "bvh.h"
 #include "hittable_list.h"
 #include "sphere.h"
+#include "cylinder.h"
 #include "aarect.h"
 #include "camera.h"
 #include "moving_sphere.h"
