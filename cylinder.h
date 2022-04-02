@@ -37,8 +37,9 @@ class cylinder: public hittable{
 
             bool onO1=CO1_square-R*R<eps;//是否在底面圆内
             bool onO2=CO2_square-R*R<eps;//是否在顶面圆内
-
+            
             if(onO1){
+                
                 vec3 O1C_unit=unit_vector(C-O1);
                 double theta=acos(std::min(std::max(dot(O1C_unit,horizontal),-1.0),1.0));
                 double radius=(C-O1).length();
@@ -165,42 +166,70 @@ bool  cylinder:: hitatside(const ray& r, double tmin, double tmax, hit_record& r
     rec.mat_ptr = mat_ptr;
     return true;
 }
-bool  cylinder:: hitatbase(const ray& r, double tmin, double tmax, vec3 O,hit_record& rec)const{
+bool  cylinder:: hitatbase(const ray& r, double tmin, double tmax,point3 O,hit_record& rec)const{
     const double eps=1e-8;
-    vec3 ray_v=r.direction();
-    vec3 ray_o=r.origin();
-    vec3 N;//向外部的法向量
+    // vec3 ray_v=unit_vector(r.direction());
+    // vec3 ray_o=r.origin();
+    // vec3 N;//向外部的法向量
     
+    // if((O-O1).near_zero()){
+    //     N=unit_vector(O1-O2);//圆柱底面单位法向量指向底面的外部
+    // }else{
+    //     N=unit_vector(O2-O1);//圆柱顶面单位法向量指向顶面的外部
+    // }
+    
+    // //判断是否平行，也就是看法向量和光线的方向的内积是否为0：
+    // double d=dot(N,ray_v);
+    // if(fabs(d)<eps){
+    //     return false;
+    // }
+    // double t=dot(O-ray_o,N)/d;//如果小于零说明交点在射线的负方向,假设ray_O为O，圆心为O1
+    // if(t<eps){
+    //     return false;
+    // }
+
+    // if (t < tmax && t > tmin){
+    //     vec3 C=r.at(t);
+    //     double O1C_lens=(C-O).length_squared();
+    //     if(O1C_lens-R*R>eps){
+    //         return false;
+    //     }
+
+    //     rec.t=t;
+    //     rec.p=r.at(rec.t);
+
+    //     rec.set_face_normal(r,N);
+    //     rec.mat_ptr = mat_ptr;
+    //     return true;
+    // }
+    // return false;
+    vec3 aMinusP0 = r.origin() - O;
+    vec3 n;
     if((O-O1).near_zero()){
-        N=unit_vector(O1-O2);//圆柱底面单位法向量指向底面的外部
+        n=unit_vector(O1-O2);//圆柱底面单位法向量指向底面的外部
     }else{
-        N=unit_vector(O2-O1);//圆柱顶面单位法向量指向顶面的外部
+        n=unit_vector(O2-O1);//圆柱顶面单位法向量指向顶面的外部
     }
     
-    //判断是否平行，也就是看法向量和光线的方向的内积是否为0：
-    double d=dot(ray_v,N);
-    if(abs(d)<eps){
+    double a=dot(aMinusP0,n);
+    double b=dot(r.direction(),n);
+    if(fabs(b)<eps){
         return false;
     }
-    double OO1_N=dot(ray_o-O,N);//如果小于零说明交点在射线的负方向,假设ray_O为O，圆心为O1
-    if(OO1_N<eps){
-        return false;
-    }
-    double t=OO1_N/d;
-    if (t < tmax && t > tmin){
-        vec3 C=r.at(t);
-        vec3 O1C=C-O;
-        double O1C_lens=O1C.length_squared();
-        if(O1C_lens-R*R>eps){
-            return false;
-        }
+    
+    double tempT=-a / b;
+    vec3 p=r.at(tempT);
+	if (dot(p - O, p - O) > R * R)
+		return false;
+        
+    if (tempT < tmax && tempT > tmin){
+    rec.t=tempT;
+    rec.p=r.at(rec.t);
 
-        rec.t=t;
-        rec.p=C;
+    rec.set_face_normal(r,n);
 
-        rec.set_face_normal(r,N);
-        rec.mat_ptr = mat_ptr;
-        return true;
+    rec.mat_ptr = mat_ptr;
+    return true;
     }
     return false;
 }   
@@ -213,40 +242,35 @@ bool  cylinder::hit(const ray& r, double tmin, double tmax, hit_record& rec) con
     bool hitside=hitatside(r,tmin,tmax,rec1);//侧面
     bool hitbase1=hitatbase(r,tmin,tmax,O1,rec2);//底面
     bool hitbase2=hitatbase(r,tmin,tmax,O2,rec3);//顶面
-    // bool hitside=false;
+    // hitside=false;
     // bool hitbase1=false;
     // bool hitbase2=false;
     double minT=tmax;
-    if(hitside||hitbase1||hitbase2){
-        // for(int i=0;i<3;i++){
-        //     if(reclist[i].t<minT){
-        //         minT=reclist[i].t;
-        //         rec=reclist[i];
-        //     }
-        // }
-        if(hitside){
-            if(rec1.t<minT){
-                minT=rec1.t;
-                rec=rec1;
-            }
+    if(!hitside&&!hitbase1&&!hitbase2){return false;}
+    if(hitbase1){
+        //std::cerr<<"hitbase1"<<std::endl;
+        if(rec2.t<minT){
+            minT=rec2.t;
+            rec=rec2;
         }
-        if(hitbase1){
-            if(rec2.t<minT){
-                minT=rec2.t;
-                rec=rec2;
-            }
-        }
-        if(hitbase2){
-            if(rec3.t<minT){
-                minT=rec3.t;
-                rec=rec3;
-            }
-        }
-        cylinder::get_cylinder_uv(rec.p,rec.u,rec.v);
-        return true;
-    }else{
-        return false;
     }
+    if(hitside){
+        if(rec1.t<minT){
+            minT=rec1.t;
+            rec=rec1;
+        }
+    }
+
+    if(hitbase2){
+        //std::cerr<<"hitbase2"<<std::endl;
+        if(rec3.t<minT){
+            minT=rec3.t;
+            rec=rec3;
+        }
+    }
+    cylinder::get_cylinder_uv(rec.p,rec.u,rec.v);
+    return true;
+
 }
 bool cylinder::bounding_box(double time0, double time1, aabb& output_box) const{
     //包围盒有bug

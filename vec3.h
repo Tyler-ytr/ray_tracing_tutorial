@@ -134,17 +134,21 @@ inline vec3 unit_vector(vec3 v) {
 }
 inline vec3 vertical_unit_vector(vec3 t){
     //返回一个和t向量垂直的向量
-    double x=t.e[0];
-    double y=t.e[1];
-    double z=t.e[2];
-    vec3 temp=vec3(y-z,z-x,x-y);
-    if(!temp.near_zero()){
-        return unit_vector(temp);
+    // double x=t.e[0];
+    // double y=t.e[1];
+    // double z=t.e[2];
+    // vec3 temp=vec3(y-z,z-x,x-y);
+    // if(!temp.near_zero()){
+    //     return unit_vector(temp);
+    // }
+    // else{
+    //     return unit_vector(vec3(1,1,1));
+    // }
+    vec3 temp=cross(t,vec3(0,1,0));
+    if(temp.near_zero()){
+        temp=cross(t,vec3(1,0,0));
     }
-    else{
-        return unit_vector(vec3(1,1,1));
-    }
-    
+    return unit_vector(temp);
 }
 
 
