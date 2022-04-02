@@ -76,15 +76,17 @@ hittable_list cornell_box() {
     box1 = make_shared<translate>(box1, vec3(265,0,295));
     objects.add(box1);
 
-    // shared_ptr<hittable> box2 = make_shared<box>(point3(0,0,0), point3(165,165,165), white);
+    shared_ptr<hittable> box2 = make_shared<cylinder>(point3(0,0,0), point3(165,165,165),50, green);
     // box2 = make_shared<rotate_y>(box2, -18);
     // box2 = make_shared<translate>(box2, vec3(130,0,65));
-    // objects.add(box2);
+    objects.add(box2);
 
-    auto glass = make_shared<dielectric>(1.5);
-    objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
 
+
+    // auto glass = make_shared<dielectric>(1.5);
+    // objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
     return objects;
+    // return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
 }
 
 
@@ -95,7 +97,7 @@ int main() {
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 500;
+    const int samples_per_pixel = 10;
     const int max_depth = 50;
 
 
@@ -105,7 +107,7 @@ int main() {
     //make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>());
     auto lights = make_shared<hittable_list>();
     lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
-    lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
+    //lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
     auto world = cornell_box();
     color background(0,0,0);
 

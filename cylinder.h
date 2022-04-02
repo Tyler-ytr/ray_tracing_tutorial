@@ -3,13 +3,14 @@
  * @version        : 
  * @Author         : tyler-ytr
  * @Date           : 2022-04-01 21:15
- * @LastEditTime   : 2022-04-02 17:01
+ * @LastEditTime   : 2022-04-02 22:04
 *******************************************************************/
 //cylinder.h
 #ifndef CYLINDER_H
 #define CYLINDER_H
 #include "hittable.h"
 #include "vec3.h"
+#include <vector>
 
 class cylinder: public hittable{
     public:
@@ -25,11 +26,41 @@ class cylinder: public hittable{
         vec3 O1,O2;//底面圆心，顶面圆心
         double R;//半径
         shared_ptr<material> mat_ptr;
-        void get_sphere_uv(const point3& c, double& u, double& v){
+        void get_cylinder_uv(const point3 &C, double& u, double& v)const{
+            const double eps=1e-8;
             u = 0.5, v = 0.5;
             vec3 vertical=unit_vector(O2-O1);//圆柱一个向上的方向
             vec3 horizontal=vertical_unit_vector(vertical);//一个水平的方向
             
+            double CO1_square=(C-O1).length_squared();//交点到底面圆心距离的平方
+            double CO2_square=(C-O2).length_squared();//交点到顶面圆心距离的平方
+
+            bool onO1=CO1_square-R*R<eps;//是否在底面圆内
+            bool onO2=CO2_square-R*R<eps;//是否在顶面圆内
+
+            if(onO1){
+                vec3 O1C_unit=unit_vector(C-O1);
+                double theta=acos(std::min(std::max(dot(O1C_unit,horizontal),-1.0),1.0));
+                double radius=(C-O1).length();
+                u = theta / (2*pi);
+                v = radius / R;
+            }else if(onO2){
+                vec3 O2C_unit=unit_vector(C-O2);
+                double theta=acos(std::min(std::max(dot(O2C_unit,horizontal),-1.0),1.0));
+                double radius=(C-O2).length();
+                u = theta / (2*pi);
+                v = radius / R;
+            }else{
+                double HEIGHT=(O1-O2).length();//圆柱的高度
+                vec3 O1C=C-O1;
+                double height=dot(O1C,vertical);//交点到圆柱底面的高度
+
+                vec3 GC_unit=unit_vector(O1C-height*vertical);//交点在的那个圆截面的圆心指向交点这个向量
+                double theta=acos(std::min(std::max(dot(GC_unit,horizontal),-1.0),1.0));
+                u=theta / (2*pi);
+                v=height / HEIGHT;
+
+            }
 
 
         }
@@ -176,31 +207,107 @@ bool  cylinder:: hitatbase(const ray& r, double tmin, double tmax, vec3 O,hit_re
 
 
 bool  cylinder::hit(const ray& r, double tmin, double tmax, hit_record& rec) const{
-    hit_record reclist[3]; 
-    // rec1,rec2,rec3;
-    bool hitside=hitatside(r,tmin,tmax,reclist[0]);//侧面
-    bool hitbase1=hitatbase(r,tmin,tmax,O1,reclist[1]);//底面
-    bool hitbase2=hitatbase(r,tmin,tmax,O2,reclist[2]);//顶面
+    // hit_record reclist[3]; 
+    hit_record rec1,rec2,rec3;
+    
+    bool hitside=hitatside(r,tmin,tmax,rec1);//侧面
+    bool hitbase1=hitatbase(r,tmin,tmax,O1,rec2);//底面
+    bool hitbase2=hitatbase(r,tmin,tmax,O2,rec3);//顶面
+    // bool hitside=false;
+    // bool hitbase1=false;
+    // bool hitbase2=false;
     double minT=tmax;
     if(hitside||hitbase1||hitbase2){
-        for(int i=0;i<3;i++){
-            if(reclist[i].t<minT){
-                minT=reclist[i].t;
-                rec=reclist[i];
+        // for(int i=0;i<3;i++){
+        //     if(reclist[i].t<minT){
+        //         minT=reclist[i].t;
+        //         rec=reclist[i];
+        //     }
+        // }
+        if(hitside){
+            if(rec1.t<minT){
+                minT=rec1.t;
+                rec=rec1;
             }
         }
+        if(hitbase1){
+            if(rec2.t<minT){
+                minT=rec2.t;
+                rec=rec2;
+            }
+        }
+        if(hitbase2){
+            if(rec3.t<minT){
+                minT=rec3.t;
+                rec=rec3;
+            }
+        }
+        cylinder::get_cylinder_uv(rec.p,rec.u,rec.v);
         return true;
     }else{
         return false;
     }
-
-
-    
-
-
 }
 bool cylinder::bounding_box(double time0, double time1, aabb& output_box) const{
-    return false;
+    //包围盒有bug
+    //一共可以得到八个点，找到左下方的和右上方的作为aabb的输入
+    std::vector<vec3> points;
+    //首先求底面，定P,Q让O1P垂直于O1Q
+    vec3 O1O2_unit=unit_vector(O2-O1);
+    vec3 OP_unit=vertical_unit_vector(O1O2_unit);
+    vec3 OQ_unit=cross(OP_unit,O1O2_unit);
+
+    vec3 OP=OP_unit*(R+0.01);
+    vec3 OQ=OQ_unit*(R+0.01);
+    // vec3 OB=O1P+O1Q;
+    // vec3 OA=O1P-O1Q;
+    // vec3 OC=-O1P+O1Q;
+    // vec3 OD=-O1P-O1Q;
+    // point3 B=O1P+O1Q+O1;
+    // point3 A=O1P-O1Q+O1;
+    // point3 C=-O1P+O1Q+O1;
+    // point3 D=-O1P-O1Q+O1;
+
+    points.push_back(OP-OQ+O1);
+    points.push_back(OP+OQ+O1);
+    points.push_back(-OP+OQ+O1);
+    points.push_back(-OP-OQ+O1);
+    //然后求顶面，由于两个面是平行的所以可以公用一部分代码
+    points.push_back(OP-OQ+O2);
+    points.push_back(OP+OQ+O2);
+    points.push_back(-OP+OQ+O2);
+    points.push_back(-OP-OQ+O2);
+
+    double minx=infinity;
+    double miny=infinity;
+    double minz=infinity;
+
+    double maxx=-infinity;
+    double maxy=-infinity;
+    double maxz=-infinity;
+
+    for(int i=0;i<points.size();i++){
+        if(points[i].x()<minx){
+            minx=points[i].x();
+        }
+        if(points[i].x()>maxx){
+            maxx=points[i].x();
+        }
+        if(points[i].y()<miny){
+            miny=points[i].y();
+        }
+        if(points[i].y()>maxy){
+            maxy=points[i].y();
+        }
+        if(points[i].z()<minz){
+            minz=points[i].z();
+        }
+        if(points[i].z()>maxz){
+            maxz=points[i].z();
+        }
+    }
+    output_box = aabb(point3(minx,miny,minz),point3(maxx,maxy,maxz));
+    return true;
 }
 
 #endif
