@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : tyler-ytr
  * @Date           : 2022-04-01 21:15
- * @LastEditTime   : 2022-04-02 22:04
+ * @LastEditTime   : 2022-04-02 22:19
 *******************************************************************/
 //cylinder.h
 #ifndef CYLINDER_H
@@ -256,6 +256,9 @@ bool cylinder::bounding_box(double time0, double time1, aabb& output_box) const{
     vec3 O1O2_unit=unit_vector(O2-O1);
     vec3 OP_unit=vertical_unit_vector(O1O2_unit);
     vec3 OQ_unit=cross(OP_unit,O1O2_unit);
+    // std::cerr<<"O1O2_unit:"<<O1O2_unit.x()<<" "<<O1O2_unit.y()<<" "<<O1O2_unit.z()<<std::endl;
+    // std::cerr<<"OP"<<OP_unit.x()<<" "<<OP_unit.y()<<" "<<OP_unit.z()<<std::endl;
+    // std::cerr<<"OQ"<<OQ_unit.x()<<" "<<OQ_unit.y()<<" "<<OQ_unit.z()<<std::endl;
 
     vec3 OP=OP_unit*(R+0.01);
     vec3 OQ=OQ_unit*(R+0.01);
@@ -285,11 +288,15 @@ bool cylinder::bounding_box(double time0, double time1, aabb& output_box) const{
     double maxx=-infinity;
     double maxy=-infinity;
     double maxz=-infinity;
-
+    // std::cerr<<points.size()<<std::endl;
     for(int i=0;i<points.size();i++){
         if(points[i].x()<minx){
+            // std::cerr<<"minx:"<<minx<<points[i].x()<<std::endl;
             minx=points[i].x();
         }
+        //else{
+        //     std::cerr<<"111minx:"<<minx<<points[i].x()<<std::endl;
+        // }
         if(points[i].x()>maxx){
             maxx=points[i].x();
         }
@@ -306,6 +313,7 @@ bool cylinder::bounding_box(double time0, double time1, aabb& output_box) const{
             maxz=points[i].z();
         }
     }
+    //std::cerr<<"minx:"<<minx<<"maxx:"<<maxx<<"miny:"<<miny<<"maxy:"<<maxy<<"minz:"<<minz<<"maxz:"<<maxz<<std::endl;
     output_box = aabb(point3(minx,miny,minz),point3(maxx,maxy,maxz));
     return true;
 }

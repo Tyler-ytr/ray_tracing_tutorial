@@ -129,6 +129,7 @@ inline vec3 cross(const vec3 &u, const vec3 &v) {
 }
 
 inline vec3 unit_vector(vec3 v) {
+    
     return v / v.length();
 }
 inline vec3 vertical_unit_vector(vec3 t){
@@ -136,8 +137,14 @@ inline vec3 vertical_unit_vector(vec3 t){
     double x=t.e[0];
     double y=t.e[1];
     double z=t.e[2];
+    vec3 temp=vec3(y-z,z-x,x-y);
+    if(!temp.near_zero()){
+        return unit_vector(temp);
+    }
+    else{
+        return unit_vector(vec3(1,1,1));
+    }
     
-    return unit_vector(vec3(y-z,z-x,x-y));
 }
 
 
