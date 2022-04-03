@@ -7,6 +7,7 @@
 #include "sphere.h"
 #include "cylinder.h"
 #include "circle.h"
+#include "triangles.h"
 #include "aarect.h"
 #include "camera.h"
 #include "moving_sphere.h"
@@ -87,6 +88,8 @@ hittable_list cornell_box() {
     // shared_ptr<hittable> circle1 = make_shared<circle>(point3(120,120,120), point3(120,0,120),50, green);
     // objects.add(circle1);
 
+    shared_ptr<hittable> triangle1=make_shared<triangle>(vec3(113, 54, 127), vec3(243, 54, 127), vec3(178, 54, 232),green);
+    objects.add(triangle1);
     // auto glass = make_shared<dielectric>(1.5);
     // objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
     //return objects;

@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : Tyler-ytr
  * @Date           : 2022-04-03 09:51
- * @LastEditTime   : 2022-04-03 11:44
+ * @LastEditTime   : 2022-04-03 13:32
 *******************************************************************/
 #ifndef CIRCLE_H
 #define CIRCLE_H
@@ -16,7 +16,7 @@ class circle: public hittable{
         circle(vec3 c,vec3 f,double r,shared_ptr<material> mat):center(c),further_point(f),R(r),mat_ptr(mat){N=unit_vector(further_point-center);}
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override;
         virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
-        //存在bug
+
         virtual double pdf_value(const point3& origin, const vec3& v) const override{
             hit_record rec;
             if (!this->hit(ray(origin, v), 0.001, infinity, rec))
