@@ -64,39 +64,47 @@ hittable_list cornell_box() {
     auto white = make_shared<lambertian>(color(.73, .73, .73));
     auto green = make_shared<lambertian>(color(.12, .45, .15));
     auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    auto pertext = make_shared<lambertian>(make_shared<noise_texture>(4));
+    auto earth_texture = make_shared<image_texture>("picture/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    auto blue=make_shared<lambertian>(color(0.2, 0.4, 0.9));
+
 
     objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
     objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
     objects.add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,light));
     objects.add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,light));
+    objects.add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,light));
     //objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
     objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
 
-    // shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
-    // shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
-    // box1 = make_shared<rotate_y>(box1, 15);
-    // box1 = make_shared<translate>(box1, vec3(265,0,295));
-    // objects.add(box1);
+    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
+    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(120,330,120), aluminum);
+    box1 = make_shared<rotate_y>(box1, 10);
+    box1 = make_shared<translate>(box1, vec3(400,0,295));
+    objects.add(box1);
 
-    // shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(120,120,120), point3(120,120,0),50, green);
-    // cylinder1 = make_shared<rotate_y>(cylinder1, -18);
-    // cylinder1 = make_shared<translate>(cylinder1, vec3(130,0,65));
-    // objects.add(cylinder1);
+    shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(0,0,0), point3(120,120,120),50,white);
+    cylinder1 = make_shared<rotate_y>(cylinder1, -18);
+    cylinder1 = make_shared<translate>(cylinder1, vec3(160,230,80));
+    objects.add(cylinder1);
 
-    shared_ptr<hittable> pyramid1=make_shared<pyramid>(point3(50,220,35),point3(90,20,30),point3(120,0,120),point3(0,0,120),red);
-    pyramid1 = make_shared<rotate_y>(pyramid1, 45);
-    pyramid1 = make_shared<translate>(pyramid1, vec3(350,100,350));
+    shared_ptr<hittable> pyramid1=make_shared<pyramid>(point3(0,140,0),point3(-1.44*70,0,-1.44*70),point3(140,0,0),point3(0,0,140),blue);
+    pyramid1 = make_shared<rotate_y>(pyramid1, 70);
+    pyramid1 = make_shared<translate>(pyramid1, vec3(150,0,350));
     objects.add(pyramid1);
-    // shared_ptr<hittable> circle1 = make_shared<circle>(point3(120,120,120), point3(120,0,120),50, green);
-    // objects.add(circle1);
 
-    // shared_ptr<hittable> triangle1=make_shared<triangle>(vec3(113, 54, 127), vec3(243, 54, 127), vec3(178, 54, 232),green);
-    // objects.add(triangle1);
-    // auto glass = make_shared<dielectric>(1.5);
-    // objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
-    //return objects;
+    auto glass = make_shared<dielectric>(1.5);
+    objects.add(make_shared<sphere>(point3(350,90,190), 50 , glass));
+
+    objects.add(make_shared<sphere>(point3(410,50,120), 50 , earth_surface));
+    auto moving_sphere_material = make_shared<lambertian>(color(0.7, 0.3, 0.1));
+    vec3 center1 = point3(290, 140, 260);
+    objects.add(make_shared<moving_sphere>(center1, center1+vec3(30,0,0), 0, 1, 50, moving_sphere_material));
+
+
     return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
 }
 
@@ -108,19 +116,17 @@ int main() {
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 10;
+    const int samples_per_pixel = 200;
     const int max_depth = 50;
 
 
     // World
-    //shared_ptr<hittable> lights =
-    //make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>());
-    //make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>());
+
     auto lights = make_shared<hittable_list>();
     lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));
     lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
-    //lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
-    //lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
+    lights->add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,shared_ptr<material>()));
+    lights->add(make_shared<sphere>(point3(350,50,190), 90, shared_ptr<material>()));
     auto world = cornell_box();
     color background(0,0,0);
 
@@ -137,7 +143,6 @@ int main() {
     
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus, time0, time1);
 
-    //camera cam(point3(-2,2,1), point3(0,0,-1), vec3(0,1,0), 90, aspect_ratio);
   
     // Render
 
