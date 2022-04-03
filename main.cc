@@ -6,6 +6,7 @@
 #include "hittable_list.h"
 #include "sphere.h"
 #include "cylinder.h"
+#include "circle.h"
 #include "aarect.h"
 #include "camera.h"
 #include "moving_sphere.h"
@@ -65,7 +66,9 @@ hittable_list cornell_box() {
 
     objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
     objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
-    objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
+    objects.add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,light));
+    objects.add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,light));
+    //objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
     objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
@@ -77,11 +80,12 @@ hittable_list cornell_box() {
     objects.add(box1);
 
     shared_ptr<hittable> box2 = make_shared<cylinder>(point3(120,120,120), point3(120,120,0),50, green);
-    // box2 = make_shared<rotate_y>(box2, -18);
+    box2 = make_shared<rotate_y>(box2, -18);
     box2 = make_shared<translate>(box2, vec3(130,0,65));
     objects.add(box2);
 
-
+    // shared_ptr<hittable> circle1 = make_shared<circle>(point3(120,120,120), point3(120,0,120),50, green);
+    // objects.add(circle1);
 
     // auto glass = make_shared<dielectric>(1.5);
     // objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
@@ -106,7 +110,9 @@ int main() {
     //make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>());
     //make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>());
     auto lights = make_shared<hittable_list>();
-    lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
+    lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));
+    lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
+    //lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
     //lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
     auto world = cornell_box();
     color background(0,0,0);

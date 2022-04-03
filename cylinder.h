@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : tyler-ytr
  * @Date           : 2022-04-01 21:15
- * @LastEditTime   : 2022-04-02 22:19
+ * @LastEditTime   : 2022-04-03 10:27
 *******************************************************************/
 //cylinder.h
 #ifndef CYLINDER_H
@@ -14,7 +14,7 @@
 
 class cylinder: public hittable{
     public:
-
+        //可能存在法向量指向错误 O1O2定义应该是O2-O1才对
         cylinder(){};
         cylinder(vec3 _O1,vec3 _O2,double _R,shared_ptr<material> m):O1(_O1),O2(_O2),R(_R), mat_ptr(m){};        
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override;
