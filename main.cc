@@ -74,22 +74,26 @@ hittable_list cornell_box() {
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
     objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
 
-    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
-    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
-    box1 = make_shared<rotate_y>(box1, 15);
-    box1 = make_shared<translate>(box1, vec3(265,0,295));
-    objects.add(box1);
+    // shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
+    // shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
+    // box1 = make_shared<rotate_y>(box1, 15);
+    // box1 = make_shared<translate>(box1, vec3(265,0,295));
+    // objects.add(box1);
 
-    shared_ptr<hittable> box2 = make_shared<cylinder>(point3(120,120,120), point3(120,120,0),50, green);
-    box2 = make_shared<rotate_y>(box2, -18);
-    box2 = make_shared<translate>(box2, vec3(130,0,65));
-    objects.add(box2);
+    // shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(120,120,120), point3(120,120,0),50, green);
+    // cylinder1 = make_shared<rotate_y>(cylinder1, -18);
+    // cylinder1 = make_shared<translate>(cylinder1, vec3(130,0,65));
+    // objects.add(cylinder1);
 
+    shared_ptr<hittable> pyramid1=make_shared<pyramid>(point3(50,220,35),point3(90,20,30),point3(120,0,120),point3(0,0,120),red);
+    pyramid1 = make_shared<rotate_y>(pyramid1, 45);
+    pyramid1 = make_shared<translate>(pyramid1, vec3(350,100,350));
+    objects.add(pyramid1);
     // shared_ptr<hittable> circle1 = make_shared<circle>(point3(120,120,120), point3(120,0,120),50, green);
     // objects.add(circle1);
 
-    shared_ptr<hittable> triangle1=make_shared<triangle>(vec3(113, 54, 127), vec3(243, 54, 127), vec3(178, 54, 232),green);
-    objects.add(triangle1);
+    // shared_ptr<hittable> triangle1=make_shared<triangle>(vec3(113, 54, 127), vec3(243, 54, 127), vec3(178, 54, 232),green);
+    // objects.add(triangle1);
     // auto glass = make_shared<dielectric>(1.5);
     // objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
     //return objects;

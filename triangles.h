@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : Tyler-ytr
  * @Date           : 2022-04-03 13:07
- * @LastEditTime   : 2022-04-03 14:13
+ * @LastEditTime   : 2022-04-03 14:39
 *******************************************************************/
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
@@ -106,5 +106,42 @@ bool triangle::bounding_box(double time0, double time1, aabb& output_box)const{
 
 
 }
+class pyramid:public hittable{
+    public:
+        pyramid(){};
+        pyramid(point3 _A,point3 _B,point3 _C,point3 _D,shared_ptr<material> mat):A(_A),B(_B),C(_C),D(_D),mat_ptr(mat){
+            sides.add(make_shared<triangle>(A,B,C,mat_ptr));
+            sides.add(make_shared<triangle>(A,C,D,mat_ptr));
+            sides.add(make_shared<triangle>(A,D,B,mat_ptr));
+            sides.add(make_shared<triangle>(B,C,D,mat_ptr));
+        }
+        virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override;
+        virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
+
+    private:
+        point3 A,B,C,D;//建议A是顶点
+        shared_ptr<material> mat_ptr;
+        hittable_list sides;
+};
+bool pyramid::hit(const ray& r, double tmin, double tmax, hit_record& rec)const{
+    return sides.hit(r,tmin,tmax,rec);
+}
+bool pyramid::bounding_box(double time0, double time1, aabb& output_box)const{
+    point3 minv=point3(std::min(std::min(std::min(A.x(),B.x()),C.x()),D.x()),
+                    std::min(std::min(std::min(A.y(),B.y()),C.y()),D.y()),
+                    std::min(std::min(std::min(A.z(),B.z()),C.z()),D.z()));
+    point3 maxv=point3(std::max(std::max(std::max(A.x(),B.x()),C.x()),D.x()),
+                    std::max(std::max(std::max(A.y(),B.y()),C.y()),D.y()),
+                    std::max(std::max(std::max(A.z(),B.z()),C.z()),D.z()));
+    vec3 diff=maxv-minv;
+    maxv.e[0]+=diff.x()<0.001?0.001:0;
+    maxv.e[1]+=diff.y()<0.001?0.001:0;
+    maxv.e[2]+=diff.z()<0.001?0.001:0;
+    output_box=aabb(minv,maxv);
+    return true;
+}
+
+
+
 
 #endif
