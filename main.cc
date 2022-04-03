@@ -116,7 +116,7 @@ int main() {
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 200;
+    const int samples_per_pixel = 10;
     const int max_depth = 50;
 
 
@@ -126,7 +126,7 @@ int main() {
     lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));
     lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
     lights->add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,shared_ptr<material>()));
-    lights->add(make_shared<sphere>(point3(350,50,190), 90, shared_ptr<material>()));
+    //lights->add(make_shared<sphere>(point3(350,50,190), 90, shared_ptr<material>()));
     auto world = cornell_box();
     color background(0,0,0);
 
