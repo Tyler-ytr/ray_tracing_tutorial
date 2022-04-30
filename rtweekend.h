@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <limits>
 #include <memory>
+#include <algorithm>
 
 
 // Usings
@@ -40,6 +41,7 @@ inline double clamp(double x, double min, double max) {
 }
 inline int random_int(int min, int max) {
     // Returns a random integer in [min,max].
+    if(min == max) return min;
     return static_cast<int>(random_double(min, max+1));
 }
 // Common Headers
