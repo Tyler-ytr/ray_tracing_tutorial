@@ -1,26 +1,28 @@
-/*
+/*******************************************************************
  * @Descripttion   : 采样
  * @version        : 
  * @Author         : Tyler-ytr
- * @Date           : 2022-04-30 15:36
- * @LastEditTime   : 2022-04-30 15:48
- */
+ * @Date           : 2022-04-30 21:29
+ * @LastEditTime   : 2022-04-30 22:17
+*******************************************************************/
+
 #ifndef SAMPLE_H
 #define SAMPLE_H
 
 #include "rtweekend.h"
 #include <string>
+
 // 参考 https://www.bilibili.com/read/cv11405334 以及论文Fast Poisson Disk Sampling in Arbitrary Dimensions
 class Fastpoisson{
     private:
         int width;
         int height;
-        int threshold;
+        double threshold;
         int max_attempts;
 
     public:
         Fastpoisson():width(100),height(100),threshold(6),max_attempts(50) {};
-        Fastpoisson(const int _width,const int _height,const int _threshold,const int _max_attempts):width(100),height(100),threshold(6),max_attempts(_max_attempts) {};
+        Fastpoisson(const int _width,const int _height,const double _threshold,const int _max_attempts):width(100),height(100),threshold(6),max_attempts(_max_attempts) {};
 
         std::vector<std::pair<double,double>> Fastpoissonsampling();
         
@@ -142,6 +144,25 @@ std::vector<std::pair<double,double>>Fastpoisson::Fastpoissonsampling(){
         }
     }
     return result_list;
-}
+};
+
+
+//sampling
+/*******************************************************************
+ * @brief : 输入采样类型，两个点之间的间隔（相对于100*100的图），输出采样点的集合（x,y都是0-1之间，做好正则化处理）
+ * @param :*undefined
+ * @return :*undefined
+*******************************************************************/
+class Sampler{
+    private:
+        double threshold;//两个点之间的间隔（对于100*100的图,比如10的时候对于uniform sampling横坐标就是{5,15,25,...,95}）
+        int Sampler_type;//0:random 1:uniform 2:Fastpoisson
+        
+    public:
+        Sampler():threshold(6),Sampler_type(0){};
+        Sampler(double _threshold,int _Sampler_type):threshold(_threshold),Sampler_type(_Sampler_type){};
+        std::vector<std::pair<double,double>> sampling();
+
+};
 
 #endif
