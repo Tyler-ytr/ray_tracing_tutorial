@@ -108,6 +108,27 @@ hittable_list cornell_box() {
 
     return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
 }
+hittable_list chess_board() {
+    hittable_list world;
+    auto white = make_shared<lambertian>(color(.73, .73, .73));
+    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    world.add(make_shared<circle>(point3(100,100,100),point3(0,0,0),50,light));
+    auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+    world.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(checker)));
+
+    int i = 1;
+
+
+    // world.add(make_shared<sphere>(vec3(0, 1, 0), 1.0, make_shared<dielectric>(1.5)));
+
+    // world.add(
+    //     make_shared<sphere>(vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))));
+
+    // world.add(
+    //     make_shared<sphere>(vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0)));
+
+    return static_cast<hittable_list>(make_shared<bvh_node>(world,0,1));
+}
 
 
 //main.cc
@@ -119,25 +140,31 @@ int main() {
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     //const int samples_per_pixel = 10;
     const int sample_threshold=25;//100*100的画布里面间隔为25做采样，然后归一化，相当于4*4次采样
-    const int sample_type=0;//0:uniform,1:random,2:Fastpoisson(blue noise)
+    const int sample_type=2;//0:uniform,1:random,2:Fastpoisson(blue noise)
     const int max_depth = 50;
 
 
     // World
 
     auto lights = make_shared<hittable_list>();
-    lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));
-    lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
-    lights->add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,shared_ptr<material>()));
+    //chess board's light
+    lights->add(make_shared<circle>(point3(100,100,100),point3(0,0,0),50,shared_ptr<material>()));
+    
+    // lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
+    // lights->add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,shared_ptr<material>()));
     //lights->add(make_shared<sphere>(point3(350,50,190), 90, shared_ptr<material>()));
-    auto world = cornell_box();
+    //auto world = cornell_box();
+    auto world =chess_board();
     color background(0,0,0);
 
     // Camera
 
-    point3 lookfrom(278, 278, -800);
-    point3 lookat(278, 278, 0);
-    vec3 vup(0, 1, 0);
+    // point3 lookfrom(278, 278, -800);
+    // point3 lookat(278, 278, 0);
+    // vec3 vup(0, 1, 0);
+    vec3 lookfrom(13,2,3);
+    vec3 lookat(0,0,0);
+    vec3 vup(0,1,0);
     auto dist_to_focus = 10.0;
     auto aperture = 0.0;
     auto vfov = 40.0;
