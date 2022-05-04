@@ -14,6 +14,7 @@
 #include <iostream>
 #include "box.h"
 #include "constant_medium.h"
+#include "sample.h"
 
 
 //目前是纯黑背景，所有光线来自于光源材质
@@ -116,7 +117,9 @@ int main() {
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 10;
+    //const int samples_per_pixel = 10;
+    const int sample_threshold=25;//100*100的画布里面间隔为25做采样，然后归一化，相当于4*4次采样
+    const int sample_type=0;//0:uniform,1:random,2:Fastpoisson(blue noise)
     const int max_depth = 50;
 
 
@@ -145,15 +148,21 @@ int main() {
 
   
     // Render
+    // initial sampler
 
+    Sampler sampler(sample_threshold,sample_type);
+    std::vector<std::pair<double,double>> randomlist;
+    int samples_per_pixel=10;//10为默认参数没有意义
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
     for (int j = image_height-1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
             vec3 color(0, 0, 0);
+            randomlist=sampler.sampling();
+            samples_per_pixel=randomlist.size();
             for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / image_width;
-                auto v = (j + random_double()) / image_height;
+                auto u = (i + randomlist[s].first) / image_width;
+                auto v = (j + randomlist[s].second) / image_height;
                 ray r = cam.get_ray(u, v);
                 color += ray_color(r, background, world, lights,max_depth);
             }

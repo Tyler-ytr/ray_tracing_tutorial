@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : Tyler-ytr
  * @Date           : 2022-04-30 21:29
- * @LastEditTime   : 2022-04-30 22:17
+ * @LastEditTime   : 2022-05-01 13:20
 *******************************************************************/
 
 #ifndef SAMPLE_H
@@ -22,6 +22,7 @@ class Fastpoisson{
 
     public:
         Fastpoisson():width(100),height(100),threshold(6),max_attempts(50) {};
+        Fastpoisson(const int _threshold):width(100),height(100),threshold(_threshold),max_attempts(50) {};
         Fastpoisson(const int _width,const int _height,const double _threshold,const int _max_attempts):width(100),height(100),threshold(6),max_attempts(_max_attempts) {};
 
         std::vector<std::pair<double,double>> Fastpoissonsampling();
@@ -157,12 +158,58 @@ class Sampler{
     private:
         double threshold;//两个点之间的间隔（对于100*100的图,比如10的时候对于uniform sampling横坐标就是{5,15,25,...,95}）
         int Sampler_type;//0:random 1:uniform 2:Fastpoisson
-        
+
     public:
-        Sampler():threshold(6),Sampler_type(0){};
+        Sampler():threshold(5),Sampler_type(0){};
         Sampler(double _threshold,int _Sampler_type):threshold(_threshold),Sampler_type(_Sampler_type){};
         std::vector<std::pair<double,double>> sampling();
+        std::vector<std::pair<double,double>> uniform_sampling();
+        std::vector<std::pair<double,double>> random_sampling();
 
 };
+
+std::vector<std::pair<double,double>> Sampler::sampling(){
+    switch(Sampler_type){
+        case 0:
+            return uniform_sampling();
+        case 1:
+            return random_sampling();
+        case 2:{
+            
+            Fastpoisson fastpoisson(threshold);
+            std::vector<std::pair<double,double>> randomlist=fastpoisson.Fastpoissonsampling();
+            for(int i=0;i<randomlist.size();++i){
+                randomlist[i].first=randomlist[i].first/100;
+                randomlist[i].second=randomlist[i].second/100;
+            }
+            return randomlist;
+        }
+
+        default:
+            return uniform_sampling();
+    }
+}
+
+std::vector<std::pair<double,double>> Sampler::uniform_sampling(){
+    std::vector<std::pair<double,double>> result_list;
+    
+    for(double i= threshold/2;i<100;i=i+ threshold){
+        for(double j=threshold/2;j<100;j=j+threshold){
+            result_list.push_back(std::make_pair(i/100,j/100));
+        }
+    }
+    return result_list;
+}
+
+std::vector<std::pair<double,double>> Sampler::random_sampling(){
+        std::vector<std::pair<double,double>> result_list;
+    
+    for(double i= threshold/2;i<100;i=i+threshold){
+        for(double j=threshold/2;j<100;j=j+threshold){
+            result_list.push_back(std::make_pair((i+random_double(-threshold/2,threshold/2))/100,(j+random_double(-threshold/2,threshold/2))/100));
+        }
+    }
+    return result_list;
+}
 
 #endif
