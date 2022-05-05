@@ -78,7 +78,7 @@ class xz_rect : public hittable {
          * @param :point3&undefined origin 
          * @return : 一个随机的vec3
         *******************************************************************/        
-        virtual vec3 random(const point3& origin) const override {
+        virtual vec3 random(const point3& origin) override {
             auto random_point = point3(random_double(x0,x1), k, random_double(z0,z1));//相当于on_light
             return random_point - origin;
         }

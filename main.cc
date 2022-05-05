@@ -82,12 +82,12 @@ hittable_list cornell_box() {
     objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
 
     shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
-    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(120,330,120), aluminum);
+    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(120,330,120), white);
     box1 = make_shared<rotate_y>(box1, 10);
     box1 = make_shared<translate>(box1, vec3(400,0,295));
     objects.add(box1);
 
-    shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(0,0,0), point3(120,120,120),50,white);
+    shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(0,0,0), point3(120,120,120),50,aluminum);
     cylinder1 = make_shared<rotate_y>(cylinder1, -18);
     cylinder1 = make_shared<translate>(cylinder1, vec3(160,230,80));
     objects.add(cylinder1);
@@ -97,13 +97,13 @@ hittable_list cornell_box() {
     pyramid1 = make_shared<translate>(pyramid1, vec3(150,0,350));
     objects.add(pyramid1);
 
-    auto glass = make_shared<dielectric>(1.5);
-    objects.add(make_shared<sphere>(point3(350,90,190), 50 , glass));
+    // auto glass = make_shared<dielectric>(1.5);
+    // objects.add(make_shared<sphere>(point3(350,90,190), 50 , glass));
 
     objects.add(make_shared<sphere>(point3(410,50,120), 50 , earth_surface));
     auto moving_sphere_material = make_shared<lambertian>(color(0.7, 0.3, 0.1));
-    vec3 center1 = point3(290, 140, 260);
-    objects.add(make_shared<moving_sphere>(center1, center1+vec3(30,0,0), 0, 1, 50, moving_sphere_material));
+    // vec3 center1 = point3(290, 140, 260);
+    // objects.add(make_shared<moving_sphere>(center1, center1+vec3(30,0,0), 0, 1, 50, moving_sphere_material));
 
 
     return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
@@ -121,8 +121,8 @@ hittable_list chess_board() {
 
     // world.add(make_shared<sphere>(vec3(0, 1, 0), 1.0, make_shared<dielectric>(1.5)));
 
-    // world.add(
-    //     make_shared<sphere>(vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))));
+    world.add(
+        make_shared<sphere>(vec3(0, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))));
 
     // world.add(
     //     make_shared<sphere>(vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0)));
@@ -139,7 +139,8 @@ int main() {
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     //const int samples_per_pixel = 10;
-    const int sample_threshold=25;//100*100的画布里面间隔为25做采样，然后归一化，相当于4*4次采样
+    //const int sample_threshold=25;//100*100的画布里面间隔为25做采样，然后归一化，相当于4*4次采样
+    const int sample_threshold=5;
     const int sample_type=2;//0:uniform,1:random,2:Fastpoisson(blue noise)
     const int max_depth = 50;
 
@@ -150,10 +151,12 @@ int main() {
     //chess board's light
     lights->add(make_shared<circle>(point3(100,100,100),point3(0,0,0),50,shared_ptr<material>()));
     
+    // lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));    
     // lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
     // lights->add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,shared_ptr<material>()));
     //lights->add(make_shared<sphere>(point3(350,50,190), 90, shared_ptr<material>()));
     //auto world = cornell_box();
+    
     auto world =chess_board();
     color background(0,0,0);
 

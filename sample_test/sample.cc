@@ -1,17 +1,45 @@
+/*
+ * @Descripttion   : 
+ * @version        : 
+ * @Author         : Tyler-ytr
+ * @Date           : 2022-05-05 16:19
+ * @LastEditTime   : 2022-05-05 16:19
+ */
 /*******************************************************************
+ * @Descripttion   : 
+ * @version        : 
+ * @Author         : Tyler-ytr
+ * @Date           : 2022-04-30 20:23
+ * @LastEditTime   : 2022-04-30 20:27
+*******************************************************************/
+/*
  * @Descripttion   : 采样
  * @version        : 
  * @Author         : Tyler-ytr
- * @Date           : 2022-04-30 21:29
- * @LastEditTime   : 2022-05-04 15:04
-*******************************************************************/
-
+ * @Date           : 2022-04-30 15:36
+ * @LastEditTime   : 2022-05-05 16:16
+ */
 #ifndef SAMPLE_H
 #define SAMPLE_H
-
-#include "rtweekend.h"
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <vector>
 #include <string>
-
+#include <cstdlib>
+#include <limits>
+#include <memory>
+inline double random_double(){
+    return rand()/(RAND_MAX+1.0);// Returns a random real in [0,1).
+}
+inline double random_double(double min, double max){
+    return min + (max-min)*random_double();
+}
+inline int random_int(int min, int max) {
+    // Returns a random integer in [min,max].
+    if(min == max) return min;
+    return static_cast<int>(random_double(min, max+1));
+}
 // 参考 https://www.bilibili.com/read/cv11405334 以及论文Fast Poisson Disk Sampling in Arbitrary Dimensions
 class Fastpoisson{
     private:
@@ -21,9 +49,9 @@ class Fastpoisson{
         int max_attempts;
 
     public:
-        Fastpoisson():width(100),height(100),threshold(6),max_attempts(50) {};
+        Fastpoisson():width(100),height(100),threshold(9),max_attempts(50) {};
         Fastpoisson(const int _threshold):width(100),height(100),threshold(_threshold),max_attempts(50) {};
-        Fastpoisson(const int _width,const int _height,const double _threshold,const int _max_attempts):width(100),height(100),threshold(6),max_attempts(_max_attempts) {};
+        Fastpoisson(const int _width,const int _height,const int _threshold,const int _max_attempts):width(100),height(100),threshold(6),max_attempts(_max_attempts) {};
 
         std::vector<std::pair<double,double>> Fastpoissonsampling();
         
@@ -144,20 +172,14 @@ std::vector<std::pair<double,double>>Fastpoisson::Fastpoissonsampling(){
             }
         }
     }
+
+
     return result_list;
-};
-
-
-//sampling
-/*******************************************************************
- * @brief : 输入采样类型，两个点之间的间隔（相对于100*100的图），输出采样点的集合（x,y都是0-1之间，做好正则化处理）
- * @param :*undefined
- * @return :*undefined
-*******************************************************************/
+}
 class Sampler{
     private:
         double threshold;//两个点之间的间隔（对于100*100的图,比如10的时候对于uniform sampling横坐标就是{5,15,25,...,95}）
-        int Sampler_type;//0:uniform 1:random(jitter) 2:Fastpoisson
+        int Sampler_type;//0:random 1:uniform 2:Fastpoisson
 
     public:
         Sampler():threshold(5),Sampler_type(0){};
@@ -212,4 +234,26 @@ std::vector<std::pair<double,double>> Sampler::random_sampling(){
     return result_list;
 }
 
+
+
+using namespace std;
+
+int main(){
+    Fastpoisson fastpoisson(1);
+    Sampler sampler(1,2);
+    vector<pair<double,double>> randomlist1=sampler.sampling();
+    // vector<pair<double,double>> randomlist1=fastpoisson.Fastpoissonsampling();
+    for(auto i:randomlist1){
+        cout<<"("<<i.first<<","<<i.second<<")"<<endl;
+    }
+    // cout<<"id,x,y"<<endl;
+    // for(int i=0;i<randomlist1.size();i++){
+    //     cout<<i+1<<","<<randomlist1[i].first/100<<","<<randomlist1[i].second/100<<endl;
+    // }
+
+    cout<<randomlist1.size()<<endl;
+
+
+
+}
 #endif
