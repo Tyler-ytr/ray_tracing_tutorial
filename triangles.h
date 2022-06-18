@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : Tyler-ytr
  * @Date           : 2022-04-03 13:07
- * @LastEditTime   : 2022-04-03 14:39
+ * @LastEditTime   : 2022-06-18 20:58
 *******************************************************************/
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
@@ -24,6 +24,27 @@ class triangle:public hittable{
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override;
         virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
         // bool is_in_triangle(const point3&p)const;//判断p是否在三角形内部
+        virtual double pdf_value(const point3& origin, const vec3& v) const override{
+            hit_record rec;
+            if (!this->hit(ray(origin, v), 0.001, infinity, rec))
+                return 0;
+
+            vec3 ABpAC = cross(B - A, C - A);
+            double area = 0.5 * ABpAC.length();
+            double distanceSquared = rec.t * rec.t * v.length() * v.length();
+            double cosine = fabs(dot(v, rec.normal)) / v.length();
+            return distanceSquared / (cosine * area);
+
+        }
+        virtual vec3 random(const point3& origin) const override{
+            double x1=random_double();
+            double x2=random_double();
+
+            double sx1=sqrt(x1);
+            auto random_point=point3((1. - sx1) * A + sx1 * (1. - x2) * B + sx1 * x2 * C);
+            return random_point-origin;
+        }
+
     private:
         point3 A,B,C;//三角形三条边：A->B,B->C,C->A;从而确定了法向量 AB叉乘AC（等价于AB叉乘BC） 如果是xoz的话天然是往上的
         shared_ptr<material> mat_ptr;
@@ -141,7 +162,77 @@ bool pyramid::bounding_box(double time0, double time1, aabb& output_box)const{
     return true;
 }
 
+// class xz_trangle:public hittable{
+//     public:
+//         xz_trangle()=delete;
+//         xz_trangle(point3 _A,point3 _B,point3 _C,shared_ptr<material> mat):A(_A),B(_B),C(_C),mat_ptr(mat){
+//             assert(A.y()!=B.y());
+//             assert(A.y()!=C.y());
+//             //AB向量叉乘BC向量
+//             edge1=B - A;
+//             edge2=C - A;
+//             N=unit_vector(cross(edge1,edge2));
+//             assert(N.x()!=vec3(0,1,0).x());
+//             assert(N.y()!=vec3(0,1,0).y());
+//             assert(N.z()!=vec3(0,1,0).z());
+//         };
+//         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override;
+//         virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
+//         virtual double pdf_value(const point3& origin, const vec3& v) const override;
+//         virtual vec3 random(const point3& origin) const override;
+    
+//     private:
+//         point3 A,B,C;//三角形三条边：A->B,B->C,C->A;从而确定了法向量 AB叉乘AC（等价于AB叉乘BC） 如果是xoz的话天然是往上的
+//         shared_ptr<material> mat_ptr;
+//         vec3 N;//法向量
+//         vec3 edge1,edge2;
 
+// };
+// bool xz_trangle::hit(const ray& r, double tmin, double tmax, hit_record& rec)const{
+
+//     const double eps=1e-8;
+//     const vec3 pvec=cross(r.direction(), edge2);
+//     const double det=dot(pvec,edge1);
+//     if(fabs(det)<eps){
+//         return false;
+//     }
+//     const double invdet=1.0/det;
+//     const vec3 tvec=r.origin()-A;
+
+//     const double u=dot(pvec,tvec)*invdet;
+//     if (u < 0 || u > 1) return false; 
+//     const vec3 qvec=cross(tvec,edge1);
+//     const double v= dot(qvec,r.direction())*invdet;
+
+//     if(v<0 || u+v>1) return false;
+
+//     const double t=dot(qvec,edge2)*invdet;
+//     if(t<tmin||t>tmax) return false;
+
+//     rec.t=t;
+//     rec.p=r.at(t);
+//     rec.u=u;
+//     rec.v=v;
+//     rec.set_face_normal(r,N);
+//     rec.mat_ptr = mat_ptr;
+//     return true;
+// }
+// bool  xz_trangle::bounding_box(double time0, double time1, aabb& output_box) const{
+//     point3 minv=point3(std::min(std::min(A.x(),B.x()),C.x()),
+//                     std::min(std::min(A.y(),B.y()),C.y()),
+//                     std::min(std::min(A.z(),B.z()),C.z()));
+//     point3 maxv=point3(std::max(std::max(A.x(),B.x()),C.x()),
+//                     std::max(std::max(A.y(),B.y()),C.y()),
+//                     std::max(std::max(A.z(),B.z()),C.z()));
+//     vec3 diff=maxv-minv;
+//     maxv.e[0]+=diff.x()<0.001?0.001:0;
+//     maxv.e[1]+=diff.y()<0.001?0.001:0;
+//     maxv.e[2]+=diff.z()<0.001?0.001:0;
+//     output_box=aabb(minv,maxv);
+//     return true;
+
+
+// }
 
 
 #endif
