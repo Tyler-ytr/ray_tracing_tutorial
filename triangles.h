@@ -3,12 +3,12 @@
  * @version        : 
  * @Author         : Tyler-ytr
  * @Date           : 2022-04-03 13:07
- * @LastEditTime   : 2022-06-18 20:58
+ * @LastEditTime   : 2022-06-18 21:58
 *******************************************************************/
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 #include "rtweekend.h"
-
+#include <stdarg.h>
 #include "hittable.h"
 
 class triangle:public hittable{
@@ -233,6 +233,55 @@ bool pyramid::bounding_box(double time0, double time1, aabb& output_box)const{
 
 
 // }
+class polygon:public hittable{
+    public:
+        polygon()=delete;
+        //num表示多边形点的数量，比如三角形就是3，四边形是4
+        polygon(shared_ptr<material> mat,int num,point3 _A,point3 _B,point3 _C,...):mat_ptr(mat){
+            points.push_back(_A);
+            points.push_back(_B);
+            points.push_back(_C);
+            va_list valist;
+            va_start(valist, _C);
+            for(int i=0;i<num-3;i++){
+                points.push_back(va_arg(valist, point3));
+            }
+            //四边形:123 234 0,1 num=4 num-2=2
+            int cnt=0;
+            for(int i=0;i<num-2;++i){
+                if(cnt==0){
+                point3 A=points[i];
+                point3 B=points[i+1];
+                point3 C=points[i+2];
+                triangles.add(make_shared<triangle>(A,B,C,mat_ptr));
+                cnt=1;
+                }else{//保持法向量一致
+                    point3 A=points[i];
+                    point3 C=points[i+1];
+                    point3 B=points[i+2];
+                    triangles.add(make_shared<triangle>(A,B,C,mat_ptr));
+                    cnt=0;
 
+                }
+            }
+        };
+        virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override{
+            return triangles.hit(r,tmin,tmax,rec);
+        }
+        virtual bool bounding_box(double time0, double time1, aabb& output_box) const override{
+            return triangles.bounding_box(time0,time1,output_box);
+        };
+        virtual double pdf_value(const vec3 &o, const vec3 &v) const override{
+            return triangles.pdf_value(o,v);
+        };
+        virtual vec3 random(const vec3 &o) const override{
+            return triangles.random(o);
+        };
+    
+    private:
+        hittable_list triangles;
+        std::vector<point3> points;
+        shared_ptr<material> mat_ptr;
+};
 
 #endif
