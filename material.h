@@ -16,7 +16,7 @@
 struct scatter_record {
     ray specular_ray;
     bool is_specular;
-    color attenuation;
+    color attenuation;//实际上表示混合之后的颜色
     shared_ptr<pdf> pdf_ptr;
 };
 
@@ -164,6 +164,82 @@ class diffuse_light:public material{
 //     public:
 //         shared_ptr<texture> albedo;
 // };
+class Microfast :public material{
+    public:
+        Microfast(const color& a,const double _roughness,const double _ior):
+            Diffuse_Color(make_shared<solid_color>(a)),roughness(_roughness),ior(_ior){};
+        Microfast(shared_ptr<texture> a,const double _roughness,const double _ior):
+            Diffuse_Color(a),roughness(_roughness),ior(_ior){};
+        virtual bool scatter(
+            const ray& r_in, const hit_record& rec, scatter_record& srec
+        ) const override {
+            
+            srec.is_specular = false;
+            srec.attenuation = Diffuse_Color->value(rec.u, rec.v, rec.p);
+            srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
+            return true;
 
+        }
+
+        double Fresnel_Schlick(double cosine)const {
+            double F0=abs ((1.0 - ior) / (1.0 + ior));
+            return F0 + (1-F0) * pow( 1 -  cosine, 5);
+        }
+        double GGX_Partial(double x_dot_m,double x_dot_n)const {
+            if( x_dot_m/x_dot_n<0)return 0;
+            double x_dot_m2=x_dot_m*x_dot_m;
+            double tan2=(1-x_dot_m2)/x_dot_m2;
+            return 2.0/(1+sqrt(1+roughness*roughness*tan2));
+        }
+        double GGX(double o_dot_n,double o_dot_m,double i_dot_n,double i_dot_m)const{
+            return GGX_Partial(o_dot_m,o_dot_n)*GGX_Partial(i_dot_m,i_dot_n);
+        }
+        double Distribution(double m_dot_n)const{
+            if(m_dot_n-1e-6<=0.0)return 0.0;
+            double m_dot_n2=m_dot_n*m_dot_n;
+            double den=m_dot_n2*roughness*roughness+(1-m_dot_n2);
+            return roughness*roughness/(pi*den*den);
+
+        }
+
+
+        double scattering_pdf(
+            const ray& r_in, const hit_record& rec, const ray& scattered
+        ) const {
+            //Cook-Torrance 里面有两部分 一部分是cosine/pi;另一部分是DFG/(4*(w_0\cdot n)*(w_0\cdot n))
+            //第一部分
+            double result=0.0;
+            auto cosine = dot(rec.normal, unit_vector(scattered.direction()));
+            result+=cosine < 0 ? 0 : cosine/pi;
+
+            //第二部分
+
+            double eps=1e-6;
+            //和GAMES101里面的符号一致
+            vec3 wi=unit_vector(-r_in.dir);
+            vec3 wo=unit_vector(scattered.dir);
+            vec3 n=rec.normal;
+            vec3 m=unit_vector(wi+wo);
+
+            double o_dot_n=std::max(0.0, dot(wo, n));
+            double o_dot_m =std::max(0.0, dot(wo, m));
+            double i_dot_n=std::max(0.0, dot(wi, n));
+            double i_dot_m =std::max(0.0, dot(wi, m));
+            double m_dot_n =std::max(0.0, dot(m, n));
+            if (o_dot_n<=0)return result;
+
+            //double m=roughness;
+            //菲涅尔项计算
+            double F=Fresnel_Schlick(i_dot_m);  
+            double G=GGX(o_dot_n,o_dot_m,i_dot_n,i_dot_m);
+            double D=Distribution(m_dot_n);
+            result+=F*G*D/(4*i_dot_n);
+            return result;
+        }
+    public:
+        shared_ptr<texture> Diffuse_Color;// Diffuse Color
+        double roughness;//粗糙度
+        double ior;//折射指数(Indices of Refraction)
+};
 
 #endif
