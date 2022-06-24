@@ -60,19 +60,30 @@ color ray_color(
 hittable_list cornell_box() {
     hittable_list objects;
 
-    auto red   = make_shared<lambertian>(color(.65, .05, .05));
-    auto white = make_shared<lambertian>(color(.73, .73, .73));
-    auto green = make_shared<lambertian>(color(.12, .45, .15));
+    // auto red   = make_shared<lambertian>(color(.65, .05, .05));
+    // auto white = make_shared<lambertian>(color(.73, .73, .73));
+    // auto green = make_shared<lambertian>(color(.12, .45, .15));
+    // auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    // auto pertext = make_shared<lambertian>(make_shared<noise_texture>(4));
+    // auto earth_texture = make_shared<image_texture>("picture/earthmap.jpg");
+    // auto earth_surface = make_shared<lambertian>(earth_texture);
+    // auto blue=make_shared<lambertian>(color(0.2, 0.4, 0.9));
+
+    auto red   = make_shared<Microfast>(color(.65, .05, .05),0.6,1.2);
+    auto white = make_shared<Microfast>(color(.73, .73, .73),0.6,1.2);
+    auto green = make_shared<Microfast>(color(.12, .45, .15),0.6,1.2);
     auto light = make_shared<diffuse_light>(color(15, 15, 15));
     auto pertext = make_shared<lambertian>(make_shared<noise_texture>(4));
     auto earth_texture = make_shared<image_texture>("picture/earthmap.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
-    auto blue=make_shared<lambertian>(color(0.2, 0.4, 0.9));
+    auto blue=make_shared<Microfast>(color(0.2, 0.4, 0.9),0.6,1.2);
 
 
     objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
     objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
-    objects.add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,light));
+    objects.add(make_shared<polygon>(light,6,vec3(400, 554, 250), vec3(300, 554, 200), vec3(200, 554, 250),vec3(200, 554, 350),vec3(300, 554, 400),vec3(400, 554, 350)));
+    //objects.add(make_shared<triangle>(vec3(213, 554, 227), vec3(343, 554, 227), vec3(278, 554, 332), light));
+    //objects.add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,light));
     objects.add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,light));
     objects.add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,light));
     //objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
@@ -85,10 +96,10 @@ hittable_list cornell_box() {
     box1 = make_shared<rotate_y>(box1, 10);
     box1 = make_shared<translate>(box1, vec3(400,0,295));
     objects.add(box1);
-
-    shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(0,0,0), point3(120,120,120),50,white);
+    auto white_9 = make_shared<Microfast>(color(0.4, 0.275, 0.05),0.9,1.2);
+    shared_ptr<hittable> cylinder1 = make_shared<cylinder>(point3(0,0,0), point3(30,270,30),20,white_9);
     cylinder1 = make_shared<rotate_y>(cylinder1, -18);
-    cylinder1 = make_shared<translate>(cylinder1, vec3(160,230,80));
+    cylinder1 = make_shared<translate>(cylinder1, vec3(50,0,120));
     objects.add(cylinder1);
 
     shared_ptr<hittable> pyramid1=make_shared<pyramid>(point3(0,140,0),point3(-1.44*70,0,-1.44*70),point3(140,0,0),point3(0,0,140),blue);
@@ -96,18 +107,65 @@ hittable_list cornell_box() {
     pyramid1 = make_shared<translate>(pyramid1, vec3(150,0,350));
     objects.add(pyramid1);
 
-    auto glass = make_shared<dielectric>(1.5);
-    objects.add(make_shared<sphere>(point3(350,90,190), 50 , glass));
+    auto Microfast_1_12  = make_shared<Microfast>(color(0.2, 0.4, 0.9),0.1,1.2);//蓝色
+    objects.add(make_shared<sphere>(point3(410,50,120), 50 , Microfast_1_12 ));
+    auto Microfast_3_12  = make_shared<Microfast>(color(0.3, 0.375, 0.7),0.3,1.2);
+    objects.add(make_shared<sphere>(point3(360,100,170), 50 , Microfast_3_12));
+    auto Microfast_5_12  = make_shared<Microfast>(color(0.4, 0.35, 0.5),0.5,1.2);
+    objects.add(make_shared<sphere>(point3(310, 150, 220), 50 , Microfast_5_12 ));
+    auto Microfast_7_12  = make_shared<Microfast>(color(0.5, 0.325, 0.3),0.7,1.2);
+    objects.add(make_shared<sphere>(point3(260, 200, 270), 50 , Microfast_7_12 ));
+    auto Microfast_9_12  = make_shared<Microfast>(color(0.6, 0.3, 0.1),0.9,1.2);
+    objects.add(make_shared<sphere>(point3(210, 250, 320), 50 , Microfast_9_12 )); 
+    
+    
+    return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
+}
+hittable_list BRDFtest(){
+    hittable_list objects;
+    hittable_list boxes1;
+    
 
-    objects.add(make_shared<sphere>(point3(410,50,120), 50 , earth_surface));
-    auto moving_sphere_material = make_shared<lambertian>(color(0.7, 0.3, 0.1));
-    vec3 center1 = point3(290, 140, 260);
-    objects.add(make_shared<moving_sphere>(center1, center1+vec3(30,0,0), 0, 1, 50, moving_sphere_material));
+    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    auto ground = make_shared<lambertian>(color(0.48, 0.83, 0.53));
+
+
+    const int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; i++) 
+    {
+        for (int j = 0; j < boxes_per_side; j++) 
+        {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i*w;
+            auto z0 = -1000.0 + j*w;
+            auto y0 = 0.0;
+            auto x1 = x0 + w;
+            auto y1 = random_double(1,101);
+            auto z1 = z0 + w;
+
+            boxes1.add(make_shared<box>(point3(x0,y0,z0), point3(x1,y1,z1), ground));
+        }
+    }
+    objects.add(make_shared<bvh_node>(boxes1, 0, 1));
+    //光源
+    // objects.add(make_shared<xz_rect>(123, 423, 147, 412, 554, light));
+    objects.add(make_shared<circle>(point3(200,500,200),point3(200,0,200),150,light));
+    // objects.add(make_shared<polygon>(light,4,vec3(250, 554,400), 
+    // vec3(350, 554, 400), vec3(400, 554,300),vec3(350, 554, 200),vec3(250, 554, 200),vec3(200, 554, 300)));
+    
+    auto center1 = point3(400, 400, 200);
+    auto center2 = center1 + vec3(30,0,0);
+    //左上角的黄色的球
+    auto Microfast_6_12  = make_shared<Microfast>(color(0.7, 0.3, 0.1),0.6,1.2);
+    objects.add(make_shared<sphere>(point3(400, 200, 200), 50, Microfast_6_12));
+    //
+    auto Microfast_2_12  = make_shared<Microfast>(color(0.2, 0.4, 0.9),0.1,1.2);
+    objects.add(make_shared<sphere>(point3(260, 150, 45), 50, Microfast_2_12));
+
 
 
     return static_cast<hittable_list>(make_shared<bvh_node>(objects,0,1));
 }
-
 
 //main.cc
 int main() {
@@ -116,21 +174,30 @@ int main() {
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 10;
+    const int samples_per_pixel = 1000;
     const int max_depth = 50;
 
 
     // World
-
+    // cornell_box World
     auto lights = make_shared<hittable_list>();
-    lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));
+
+    lights->add(make_shared<polygon>(shared_ptr<material>(),6,vec3(400, 554, 250), vec3(300, 554, 200), vec3(200, 554, 250),vec3(200, 554, 350),vec3(300, 554, 400),vec3(400, 554, 350)));
+    //lights->add(make_shared<triangle>(vec3(213, 554, 227), vec3(343, 554, 227), vec3(278, 554, 332),shared_ptr<material>()));
+    //lights->add(make_shared<circle>(point3(278,554,279),point3(278,0,279),60,shared_ptr<material>()));
     lights->add(make_shared<circle>(point3(500,500,500),point3(0,0,0),60,shared_ptr<material>()));
     lights->add(make_shared<circle>(point3(60,500,500),point3(500,0,0),60,shared_ptr<material>()));
     //lights->add(make_shared<sphere>(point3(350,50,190), 90, shared_ptr<material>()));
     auto world = cornell_box();
+
+
+    // BRDF testing World
+    // lights->add(make_shared<circle>(point3(200,500,200),point3(200,0,200),150,shared_ptr<material>()));
+    // auto world = BRDFtest();
+
     color background(0,0,0);
 
-    // Camera
+    // cornell box Camera
 
     point3 lookfrom(278, 278, -800);
     point3 lookat(278, 278, 0);
@@ -140,6 +207,16 @@ int main() {
     auto vfov = 40.0;
     auto time0 = 0.0;
     auto time1 = 1.0;
+
+    // BRDF testing Camera
+    // point3 lookfrom(478, 278, -600);
+    // point3 lookat(278, 278, 0);
+    // vec3 vup(0, 1, 0);
+    // auto dist_to_focus = 10.0;
+    // auto aperture = 0.0;
+    // auto vfov = 40.0;
+    // auto time0 = 0.0;
+    // auto time1 = 1.0;
     
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus, time0, time1);
 
