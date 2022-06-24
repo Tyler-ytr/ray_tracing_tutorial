@@ -3,7 +3,7 @@
  * @version        : 
  * @Author         : Tyler-ytr
  * @Date           : 2022-04-03 13:07
- * @LastEditTime   : 2022-06-18 22:11
+ * @LastEditTime   : 2022-06-23 17:00
 *******************************************************************/
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
@@ -176,24 +176,15 @@ class polygon:public hittable{
             for(int i=0;i<num-3;i++){
                 points.push_back(va_arg(valist, point3));
             }
-            //四边形:123 234 0,1 num=4 num-2=2
+            //六边形:1 2 3 4 5 6 123 134 145 156(012345)
             int cnt=0;
-            for(int i=0;i<num-2;++i){
-                if(cnt==0){
-                point3 A=points[i];
+            point3 A=points[0];
+            for(int i=1;i<num-1;i++){
+                point3 C=points[i];
                 point3 B=points[i+1];
-                point3 C=points[i+2];
                 triangles.add(make_shared<triangle>(A,B,C,mat_ptr));
-                cnt=1;
-                }else{//保持法向量一致
-                    point3 A=points[i];
-                    point3 C=points[i+1];
-                    point3 B=points[i+2];
-                    triangles.add(make_shared<triangle>(A,B,C,mat_ptr));
-                    cnt=0;
-
-                }
             }
+
         };
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const override{
             return triangles.hit(r,tmin,tmax,rec);
